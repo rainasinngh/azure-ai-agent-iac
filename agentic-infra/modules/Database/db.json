@@ -1,0 +1,107 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "administratorLogin": {
+      "type": "string",
+      "defaultValue": "adminuser"
+    },
+    "administratorLoginPassword": {
+      "type": "securestring",
+      "defaultValue": "P@ssw0rd!"
+    },
+    "serverName": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string"
+    },
+    "databaseName": {
+      "type": "string",
+      "defaultValue": "MyDatabase"
+    },
+    "workloadEnvironment": {
+      "type": "string",
+      "defaultValue": "Development",
+      "allowedValues": ["Development", "Production"],
+      "metadata": {
+        "description": "Environment type for the database"
+      }
+    },
+    "firewallRules": {
+      "type": "array",
+      "defaultValue": [
+        {
+          "startIpAddress": "",
+          "endIpAddress": ""
+        }
+      ],
+      "metadata": {
+        "description": "List of firewall rules to allow access to the database."
+      }
+    }
+  },
+  "variables": {
+    "sqlServerResourceId": "[resourceId('Microsoft.Sql/servers', parameters('serverName'))]",
+    "sqlDatabaseResourceId": "[concat(variables('sqlServerResourceId'), '/databases/', parameters('databaseName'))]",
+    "backupStorageRedundancy": "ZoneRedundant"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Sql/servers",
+      "apiVersion": "2021-05-01-preview",
+      "name": "[parameters('serverName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "administratorLogin": "[parameters('administratorLogin')]",
+        "administratorLoginPassword": "[parameters('administratorLoginPassword')]",
+        "version": "12.0"
+      },
+      "resources": [
+        {
+          "type": "Microsoft.Sql/servers/firewallRules",
+          "apiVersion": "2021-05-01-preview",
+          "name": "[concat(parameters('serverName'), '/AllowAllAzureIPs')]",
+           "dependsOn": [
+             "[resourceId('Microsoft.Sql/servers', parameters('serverName'))]"
+        ],
+          "properties": {
+            "startIpAddress": "10.0.0.0",
+            "endIpAddress": "10.0.255.255"
+          }
+        },
+        {
+          "type": "Microsoft.Sql/servers/firewallRules",
+          "apiVersion": "2021-05-01-preview",
+          "name": "[concat(parameters('serverName'), '/AllowSpecificIPs')]",
+           "dependsOn": [
+             "[resourceId('Microsoft.Sql/servers', parameters('serverName'))]"
+        ],
+          "properties": {
+            "startIpAddress": "[parameters('firewallRules')[0].startIpAddress]",
+            "endIpAddress": "[parameters('firewallRules')[0].endIpAddress]"
+          }
+        }
+      ]
+    },
+    {
+      "type": "Microsoft.Sql/servers/databases",
+      "apiVersion": "2021-05-01-preview",
+      "name": "[concat(parameters('serverName'), '/', parameters('databaseName'))]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Sql/servers', parameters('serverName'))]"
+      ],
+      "properties": {
+        "edition": "[if(equals(parameters('workloadEnvironment'), 'Development'), 'Basic', 'Standard')]",
+        "backupStorageRedundancy": "[variables('backupStorageRedundancy')]"
+      }
+    }
+  ],
+  "outputs": {
+    "dbConnectionString": {
+      "type": "string",
+      "value": "[concat('Server=tcp:', parameters('serverName'), '.database.windows.net;Database=', parameters('databaseName'), ';User ID=', parameters('administratorLogin'), ';Password=', parameters('administratorLoginPassword'))]"
+    }
+  }
+}

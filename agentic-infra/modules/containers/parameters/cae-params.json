@@ -1,0 +1,38 @@
+{
+// Replace all xxxx values with your own parameters. //
+
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environmentName": {
+      "value": "xxxxxx"
+    },
+    "location": {
+      "value": "xxxx"
+    },
+    "vnetName": {
+      "value": "xxxxxxxxxx"
+    },
+    "logAnalyticsWorkspaceName": {
+      "value": "xxxxxxxxx"
+    },
+    "subnetName": {
+      "value": "xxxxxxxxx"
+    },
+    "PE_subnet":{
+        "value": "xxxxxxxx"
+    },
+    "privateEndpointName": {
+      "value": "xxxxxxxxx"
+    },
+    "privateLinkConnectionName" : {
+        "value": "xxxxxxx"
+    },
+    
+    "privateDnsZoneId": {
+      "value": "/subscriptions/<sub_id>/resourceGroups/<resourceGroup_name>/providers/Microsoft.Network/privateDnsZones/<private_dns_zone_link>"
+    }
+
+    
+  }
+}

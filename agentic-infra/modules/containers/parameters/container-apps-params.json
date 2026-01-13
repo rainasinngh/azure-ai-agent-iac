@@ -1,0 +1,79 @@
+{
+
+      // Replace all the xxxx values with your own parameters , customize cpu and memory as per requirements.//
+
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "containerAppNameBE": {
+      "value": "xxxxxx"
+    },
+    "containerAppNameFE": {
+      "value": "xxxxx"
+    },
+    "containerImageNameFE": {
+      "value": "xxxxxxx"
+    },
+    "containerImageNameBE": {
+      "value": "xxxxxxx"
+    },
+    "managedEnvironmentname": {
+      "value": "xxxxxxx"
+    },
+    "acrServer": {
+      "value": "xxxxxxxxxxxxxx"
+    },
+    "acrUsername": {
+      "value": "xxxxxxxxx"
+    },
+    "acrPassword": {
+      "value": "xxxxxxxxxxxxx"
+    },
+    "containerImageTag": {
+      "value": "xxxxx"
+    },
+    "envVariablesBE": {
+      "value": [
+        {
+          "name": "variable_name",
+          "value": "variable's_value"
+        },
+        
+        // Add other required paramters in the same format //
+          
+
+      ]
+    },
+    "envVariablesFE": {
+      "value": [
+        
+          // Add required parameters for frotend here //.
+
+      ]
+    },
+    "FEcpu": {
+      "value": 2
+    },
+    "FEmemory": {
+      "value": "4Gi"
+    },
+     "BEcpu": {
+      "value": 4
+    },
+    "BEmemory": {
+      "value": "8Gi"
+    },
+    "minReplicas": {
+      "value": 1
+    },
+    "maxReplicas": {
+      "value": 3
+    },
+    "targetPortBE": {
+      "value": 8000
+    },
+    "targetPortFE": {
+      "value": 80
+    }
+  }
+}

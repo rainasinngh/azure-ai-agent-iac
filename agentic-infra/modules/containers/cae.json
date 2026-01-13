@@ -1,0 +1,137 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environmentName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Container Apps Managed Environment"
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "eastus2"
+    },
+    "vnetName": {
+      "type": "string"
+    },
+    "subnetName": {
+      "type": "string",
+      "defaultValue": "cae-test-subnet"  
+    },
+    "PE_subnet":{
+        "type": "string"
+    },
+    "logAnalyticsWorkspaceName": {
+      "type": "string"
+    },
+    "privateEndpointName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Private Endpoint"
+      }
+    },
+
+    "privateLinkConnectionName": {
+    "type": "string",
+    "defaultValue": "cae-connection",
+    "metadata": {
+        "description": "Name of the private link service connection"
+    }
+    },
+
+    "privateDnsZoneId": {
+      "type": "string",
+      "metadata": {
+        "description": "Resource ID of privatelink.azurecontainerapps.io"
+      }
+    }
+  },
+  "variables": {
+    "vnetId": "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnetName'))]",
+    "subnetId": "[concat(variables('vnetId'), '/subnets/', parameters('subnetName'))]",
+    "PE_subnetId":"[concat(variables('vnetId'), '/subnets/', parameters('PE_subnet'))]"
+  },
+  "resources": [
+    {
+       "type": "Microsoft.App/managedEnvironments",
+        "apiVersion": "2025-02-02-preview",
+        "name": "[parameters('environmentName')]",
+        "location": "[parameters('location')]",
+        "properties": {
+            "workloadProfiles": [
+            {
+                "name": "Consumption",
+                "workloadProfileType": "Consumption",
+                "enableFips": false
+            }
+            ],
+            "vnetConfiguration": {
+            "infrastructureSubnetId": "[variables('subnetId')]",
+            "internal": true
+            },
+            "appLogsConfiguration": {
+            "destination": "log-analytics",
+            "logAnalyticsConfiguration": {
+                "customerId": "[reference(resourceId('Microsoft.OperationalInsights/workspaces', parameters('logAnalyticsWorkspaceName')), '2023-09-01').customerId]",
+                "sharedKey": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces', parameters('logAnalyticsWorkspaceName')), '2023-09-01').primarySharedKey]"
+            }
+            },
+            "publicNetworkAccess": "Disabled"
+      }
+    },
+    {
+      "type": "Microsoft.Network/privateEndpoints",
+      "apiVersion": "2023-05-01",
+      "name": "[parameters('privateEndpointName')]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.App/managedEnvironments', parameters('environmentName'))]"
+      ],
+      "properties": {
+        "subnet": {
+          "id": "[variables('PE_subnetId')]"
+        },
+        "privateLinkServiceConnections": [
+          {
+            "name": "[parameters('privateLinkConnectionName')]",
+            "properties": {
+              "privateLinkServiceId": "[resourceId('Microsoft.App/managedEnvironments', parameters('environmentName'))]",
+              "groupIds": [
+                "managedEnvironments"
+              ],
+              "privateLinkServiceConnectionState": {
+                "status": "Approved",
+                "description": "Auto-approved"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+      "apiVersion": "2023-05-01",
+      "name": "[concat(parameters('privateEndpointName'), '/default')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/privateEndpoints', parameters('privateEndpointName'))]"
+      ],
+      "properties": {
+        "privateDnsZoneConfigs": [
+          {
+            "name": "cae-dns",
+            "properties": {
+              "privateDnsZoneId": "[parameters('privateDnsZoneId')]"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "outputs": {
+    "containerEnvironmentId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.App/managedEnvironments', parameters('environmentName'))]"
+    }
+  }
+}

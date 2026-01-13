@@ -1,0 +1,31 @@
+{
+
+    //Replace xxxxx vlues with your own parameters//
+
+  "administratorLogin": {
+    "value": "xxxxxxx"
+  },
+  "administratorLoginPassword": {
+    "value": "xxxxxxxxxxxxxx"
+  },
+  "workloadEnvironment": {
+    "value": "xxxxxxxxxxx"
+  },
+  "serverName": {
+    "value": "xxxxx"
+  },
+  "location": {
+    "value": "xxxxxx"
+  },
+  "databaseName": {
+    "value": "xxxxxxx"
+  },
+  "firewallRules": {
+    "value": [
+      {
+        "startIpAddress": "10.0.0.0",    //configure as per the requirement
+        "endIpAddress": "10.0.255.255"
+      }
+    ]
+  }
+}

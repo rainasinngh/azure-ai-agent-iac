@@ -1,0 +1,91 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "applicationGatewayName": {
+      "value": "iac_test_gway"
+    },
+    "location": {
+      "value": "eastus2"
+    },
+    "virtualNetworkId": {
+      "value": "/subscriptions/<sub_id>/resourceGroups/<resourceGroup_name>/providers/Microsoft.Network/virtualNetworks/<vnet_name>"
+    },
+    "publicIpName": {
+      "value": "iac-test-pip"
+    },
+    "subnetName": {
+      "value": "IAC_APPGW_subnet"
+    },
+    "frontendPortHttp": {
+      "value": 80
+    },
+    "frontendPortHttps": {
+      "value": 443
+    },
+    "httpListenerHttpsName": {
+      "value": "iac-https-listener"
+    },
+    "frontendAddressPool_name": {
+      "value": "iac-frontend-be-pool"
+    },
+    "backendAddressPool_name": {
+      "value": "iac-be-pool"
+    },
+    "frontendHttpSettings_name": {
+      "value": "fe-http-settings"
+    },
+    "frontendHttpSettings_port": {
+      "value": 443
+    },
+    "backendHttpSettings_name": {
+      "value": "be-http-settings"
+    },
+    "backendHttpSettings_port": {
+      "value": 443
+    },
+    "urlPathMapName": {
+      "value": "Main-routing-rule"
+    },
+    "backendroutingRule_name": {
+      "value": "backend-apis-rule"
+    },
+    "backendrouting_path": {
+      "value": "/api/*"
+    },
+    "frontendroutingRule_name": {
+      "value": "frontend-path-rule"
+    },
+    "probeFrontendName": {
+      "value": "Agent-fe-probe"
+    },
+    "probeBackendName": {
+      "value": "Agent-be-probe"
+    },
+    "backend_probe_path": {
+      "value": "/test"
+    },
+
+    "containerAppNameBE":{
+        "value": "iacbeeai"
+    },
+    "containerAppNameFE":{
+        "value":"iacfeeai"
+    },
+    "minCapacity": {
+      "value": 1
+    },
+    "maxCapacity": {
+      "value": 3
+    },
+    "sslCertificateName": {
+      "value": "certificate-name"
+    },
+    "sslCertificateData": {
+     "value": "Base64 encoded PFX certificate data"
+    },
+  "sslCertificatePassword": {
+    "value": "your-passwd"
+  }
+  }
+}

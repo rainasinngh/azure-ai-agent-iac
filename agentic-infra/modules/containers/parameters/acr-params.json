@@ -1,0 +1,18 @@
+{
+
+    // Replace all xxxx values with your own parameters. //
+
+
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "registryName": {"value": "xxxxxxxx"},
+    "registryLocation": {"value": "xxxxxx"},
+    "tags": {
+      "value": {
+        "Project": "xxxx",
+        "Env": "xxxx"
+      }
+    }
+  }
+}

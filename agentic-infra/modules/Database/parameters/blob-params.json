@@ -1,0 +1,27 @@
+{
+    // Replace xxxx values with your own parameters //
+
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "value": "xxxxxx"
+    },
+    "storageName": {
+      "value": "xxxxxxxx"
+    },
+    "virtualNetworkId": {
+      "value": "/subscriptions/<sub_id>/resourceGroups/<resource-group_name>/providers/Microsoft.Network/virtualNetworks/<vnet_name>"
+    },
+    "privateEndpointSubnetName": {
+      "value": "xxxxxxxxx"
+    },
+    "privateEndpointName": {
+      "value": "xxxxxxx"
+    },
+    "privateDnsZoneId": {
+      "value": "/subscriptions/<sub_id>/resourceGroups/<resource-group_name>/providers/Microsoft.Network/privateDnsZones/<private_dns_zone_link>"
+    
+    }
+  }
+}

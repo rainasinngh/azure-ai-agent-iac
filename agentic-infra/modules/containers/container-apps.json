@@ -1,0 +1,228 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "containerAppNameBE": {
+      "type": "string",
+      "defaultValue": "backend-container",
+      "metadata": {
+        "description": "Name of the backend Container App"
+      }
+    },
+    "containerAppNameFE": {
+      "type": "string",
+      "defaultValue": "frontend-container",
+      "metadata": {
+        "description": "Name of the frontend Container App"
+      }
+    },
+    "containerImageNameBE": {
+      "type": "string",
+      "defaultValue": "backend-image",
+      "metadata": {
+        "description": "Name of the backend container image"
+      }
+    },
+    "containerImageNameFE": {
+      "type": "string",
+      "defaultValue": "frontend-image",
+      "metadata": {
+        "description": "Name of the frontend container image"
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "eastus2"
+    },
+    "managedEnvironmentname": {
+      "type": "string"
+    },
+    "acrServer": {
+      "type": "string"
+    },
+    "containerImageTag": {
+      "type": "string",
+      "defaultValue": "latest"
+    },
+    "envVariablesBE": {
+      "type": "array",
+      "defaultValue": []
+    },
+    "envVariablesFE": {
+      "type": "array",
+      "defaultValue": []
+    },
+    
+    "FEcpu": {
+      "type": "int",
+      "defaultValue": "2"
+    },
+    "FEmemory": {
+      "type": "string",
+      "defaultValue": "4Gi"
+    },
+    "BEcpu": {
+      "type": "int",
+      "defaultValue": "4"
+    },
+    "BEmemory": {
+      "type": "string",
+      "defaultValue": "8Gi"
+    },
+    "minReplicas": {
+      "type": "int",
+      "defaultValue": 1
+    },
+    "maxReplicas": {
+      "type": "int",
+      "defaultValue": 10
+    },
+    "targetPortBE": {
+      "type": "int",
+      "defaultValue": 8000
+    },
+    "targetPortFE": {
+      "type": "int",
+      "defaultValue": 80
+    },
+    "acrUsername": {
+      "type": "string"
+    },
+    "acrPassword": {
+      "type": "securestring"
+    }
+  },
+  "variables": {
+    "containerFullImageBE": "[concat(parameters('acrServer'), '/', parameters('containerImageNameBE'), ':', parameters('containerImageTag'))]",
+    "containerFullImageFE": "[concat(parameters('acrServer'), '/', parameters('containerImageNameFE'), ':', parameters('containerImageTag'))]",
+    "managedEnvironmentId": "[resourceId('Microsoft.App/managedEnvironments', parameters('managedEnvironmentname'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.App/containerapps",
+      "apiVersion": "2024-03-01",
+      "name": "[parameters('containerAppNameBE')]",
+      "location": "[parameters('location')]",
+      "tags": {
+        "project": "backend-project"
+      },
+      "properties": {
+        "managedEnvironmentId": "[variables('managedEnvironmentId')]",
+        "workloadProfileName": "Consumption",
+        "configuration": {
+          "activeRevisionsMode": "Single",
+          "secrets": [
+            {
+              "name": "acr-password",
+              "value": "[parameters('acrPassword')]"
+            }
+          ],
+          "registries": [
+            {
+              "server": "[parameters('acrServer')]",
+              "username": "[parameters('acrUsername')]",
+              "passwordSecretRef": "acr-password"
+            }
+          ],
+          "ingress": {
+            "external": true,
+            "targetPort": "[parameters('targetPortBE')]",
+            "transport": "auto",
+            "traffic": [
+              {
+                "weight": 100,
+                "latestRevision": true
+              }
+            ],
+            "allowInsecure": false
+          }
+        },
+        "template": {
+          "containers": [
+            {
+              "name": "[parameters('containerAppNameBE')]",
+              "image": "[variables('containerFullImageBE')]",
+              "env": "[if(greater(length(parameters('envVariablesBE')), 0), parameters('envVariablesBE'), json('null'))]",
+              "resources": {
+                "cpu": "[parameters('BEcpu')]",
+                "memory": "[parameters('BEmemory')]"
+              }
+            }
+          ],
+          "scale": {
+            "minReplicas": "[parameters('minReplicas')]",
+            "maxReplicas": "[parameters('maxReplicas')]"
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.App/containerapps",
+      "apiVersion": "2024-03-01",
+      "name": "[parameters('containerAppNameFE')]",
+      "location": "[parameters('location')]",
+      "tags": {
+        "project": "frontend-project"
+      },
+      "properties": {
+        "managedEnvironmentId": "[variables('managedEnvironmentId')]",
+        "workloadProfileName": "Consumption",
+        "configuration": {
+          "activeRevisionsMode": "Single",
+          "secrets": [
+            {
+              "name": "acr-password",
+              "value": "[parameters('acrPassword')]"
+            }
+          ],
+          "registries": [
+            {
+              "server": "[parameters('acrServer')]",
+              "username": "[parameters('acrUsername')]",
+              "passwordSecretRef": "acr-password"
+            }
+          ],
+          "ingress": {
+            "external": true,
+            "targetPort": "[parameters('targetPortFE')]",
+            "transport": "auto",
+            "traffic": [
+              {
+                "weight": 100,
+                "latestRevision": true
+              }
+            ],
+            "allowInsecure": false
+          }
+        },
+        "template": {
+          "containers": [
+            {
+              "name": "[parameters('containerAppNameFE')]",
+              "image": "[variables('containerFullImageFE')]",
+              "env": "[if(greater(length(parameters('envVariablesFE')), 0), parameters('envVariablesFE'), json('null'))]",
+              "resources": {
+                "cpu": "[parameters('FEcpu')]",
+                "memory": "[parameters('FEmemory')]"
+              }
+            }
+          ],
+          "scale": {
+            "minReplicas": "[parameters('minReplicas')]",
+            "maxReplicas": "[parameters('maxReplicas')]"
+          }
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "feFqdn": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.App/containerApps', parameters('containerAppNameFE'))).configuration.ingress.fqdn]"
+    },
+    "beFqdn": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.App/containerApps', parameters('containerAppNameBE'))).configuration.ingress.fqdn]"
+    }
+  }
+}
