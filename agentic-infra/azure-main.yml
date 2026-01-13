@@ -1,0 +1,80 @@
+trigger:
+  branches:
+    include:
+      - main
+
+variables:
+- group: acr-vars   // group_name in the variable section of pipelines here <acr credentials > //
+- group: azure-sp-vars // service-principal connection details stored in this variable group //
+- name: RESOURCE_GROUP
+  value: 'xxxxxxxxx' // Give the name of resource group here //
+- name: LOCATION
+  value: 'eastus2'
+- name: CONTAINERAPPS_ENV
+  value: 'xxxxxxxxxx'  // Give name of container app environement here //
+- name: IMAGE_TAG
+  value: '$(Build.BuildId)' // This value is dynamic and can be setup also if wanted //
+
+stages:
+# ============================
+# BUILD & PUSH
+# ============================
+- stage: BuildAndPush
+  displayName: Build and Push Images
+  jobs:
+  - job: Build
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - checkout: self
+
+    - script: |
+        echo "$(ACR_PASSWORD)" | docker login $(ACR_LOGIN_SERVER) \
+          -u $(ACR_USERNAME) --password-stdin
+      displayName: Login to ACR
+
+    - script: |
+        docker build -t $(ACR_LOGIN_SERVER)/backend:$(IMAGE_TAG) backend
+        docker build -t $(ACR_LOGIN_SERVER)/frontend:$(IMAGE_TAG) frontend
+      displayName: Build Images
+
+    - script: |
+        docker push $(ACR_LOGIN_SERVER)/backend:$(IMAGE_TAG)
+        docker push $(ACR_LOGIN_SERVER)/frontend:$(IMAGE_TAG)
+      displayName: Push Images
+
+# ============================
+# DEPLOY
+# ============================
+- stage: Deploy
+  displayName: Deploy Container Apps
+  dependsOn: BuildAndPush
+  jobs:
+  - job: Deploy
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - script: |
+        az login --service-principal \
+          -u $(AZURE_CLIENT_ID) \
+          -p $(AZURE_CLIENT_SECRET) \
+          --tenant $(AZURE_TENANT_ID)
+
+        az account set --subscription $(AZURE_SUBSCRIPTION_ID)
+      displayName: Azure Login (Service Principal)
+
+    # BACKEND
+    - script: |
+        az containerapp update \
+          --name <container-app_name here> \
+          --resource-group $(RESOURCE_GROUP) \
+          --image $(ACR_LOGIN_SERVER)/backend:$(IMAGE_TAG) 
+      displayName: Update Backend Container App
+
+    # FRONTEND
+    - script: |
+        az containerapp update \
+          --name <container-app_name here> \
+          --resource-group $(RESOURCE_GROUP) \
+          --image $(ACR_LOGIN_SERVER)/frontend:$(IMAGE_TAG) 
+      displayName: Update Frontend Container App
